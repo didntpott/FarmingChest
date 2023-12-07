@@ -27,4 +27,3 @@ range:
 | `Pickup Potato` | ✔ 
 | `Pickup Wheat` | ✔ 
 | `Pickup Beetroot` | ✔  
-
