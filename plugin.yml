@@ -1,0 +1,5 @@
+name: FarmingChest
+main: farmchest\Main
+version: 1.0.0
+author: Yaku
+api: 5.0.0

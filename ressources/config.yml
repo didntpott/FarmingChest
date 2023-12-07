@@ -1,0 +1,14 @@
+##Message
+chest-full-message: "The chest is full !"
+
+##FarmingChest
+agriculture:
+  enable-carrot: true
+  enable-potato: true
+  enable-beetroot: true
+  enable-wheat: true
+range:
+  x: 4
+  z: 4
+
+
