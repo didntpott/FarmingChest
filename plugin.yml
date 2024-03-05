@@ -1,5 +1,5 @@
 name: FarmingChest
-main: Yookou\Main
+main: Yookou\FarmingChest\Main
 version: 1.0.0
 author: Yaku
 api: 5.0.0
