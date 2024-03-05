@@ -1,8 +1,7 @@
 <?php
 
-namespace farmchest\bloc;
+namespace Yookou\FarmingChest\bloc;
 
-use farmchest\Main;
 use pocketmine\block\BlockTypeIds;
 use pocketmine\block\tile\Chest;
 use pocketmine\block\VanillaBlocks;
@@ -10,6 +9,7 @@ use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerInteractEvent;
 use pocketmine\item\VanillaItems;
 use pocketmine\math\Vector3;
+use Yookou\FarmingChest\Main;
 
 class FarmingChest implements Listener {
     public function onUse(PlayerInteractEvent $event) : void {

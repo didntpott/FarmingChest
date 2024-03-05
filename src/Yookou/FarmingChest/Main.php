@@ -1,10 +1,10 @@
 <?php
 
-namespace farmchest;
+namespace Yookou\FarmingChest;
 
-use farmchest\bloc\FarmingChest;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
+use Yookou\FarmingChest\bloc\FarmingChest;
 
 class Main extends PluginBase {
 
