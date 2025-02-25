@@ -59,6 +59,33 @@ class FarmingChest implements Listener {
                                 $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
                             }
                         }
+                    } elseif ($block->getTypeId() === BlockTypeIds::BAMBOO) {
+                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-bamboo", true)) {
+                            $bambooHeight = 0;
+                            $maxHeight = 256;
+                            $currentY = $event->getBlock()->getPosition()->y + 1;
+                            while ($currentY < $maxHeight) {
+                                $blockAbove = $event->getBlock()->getPosition()->getWorld()->getBlockAt($x, $currentY, $z);
+                                if ($blockAbove->getTypeId() === BlockTypeIds::BAMBOO) {
+                                    $bambooHeight++;
+                                    $currentY++;
+                                } else {
+                                    break;
+                                }
+                            }
+                            if ($bambooHeight > 0) {
+                                $dropCount = min(16, mt_rand($bambooHeight, $bambooHeight * 2));
+                                $bambooItem = VanillaItems::BAMBOO();
+                                if ($chest->getInventory()->canAddItem($bambooItem->setCount($dropCount))) {
+                                    $chest->getInventory()->addItem($bambooItem->setCount($dropCount));
+                                    for ($y = $event->getBlock()->getPosition()->y + 1; $y < $currentY; $y++) {
+                                        $event->getBlock()->getPosition()->getWorld()->setBlockAt($x, $y, $z, VanillaBlocks::AIR());
+                                    }
+                                } else {
+                                    $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
+                                }
+                            }
+                        }
                     }
                 }
             }
