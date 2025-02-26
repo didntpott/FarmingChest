@@ -11,8 +11,10 @@ use pocketmine\item\VanillaItems;
 use pocketmine\math\Vector3;
 use Yookou\FarmingChest\Main;
 
-class FarmingChest implements Listener {
-    public function onUse(PlayerInteractEvent $event) : void {
+class FarmingChest implements Listener
+{
+    public function onUse(PlayerInteractEvent $event): void
+    {
         if ($event->getBlock()->getTypeId() === BlockTypeIds::TRAPPED_CHEST) {
             $chest = $event->getBlock()->getPosition()->getWorld()->getTile(new Vector3($event->getBlock()->getPosition()->x, $event->getBlock()->getPosition()->y, $event->getBlock()->getPosition()->z));
             if (!($chest instanceof Chest)) {
@@ -84,6 +86,16 @@ class FarmingChest implements Listener {
                                 } else {
                                     $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
                                 }
+                            }
+                        }
+                    } elseif ($block->getTypeId() === BlockTypeIds::NETHER_WART && $block->getAge() == $block::MAX_AGE) {
+                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-nether-wart", true)) {
+                            $netherWartItem = VanillaBlocks::NETHER_WART()->asItem();
+                            if ($chest->getInventory()->canAddItem($netherWartItem->setCount(4))) {
+                                $chest->getInventory()->addItem($netherWartItem->setCount(mt_rand(2, 4)));
+                                $block->getPosition()->getWorld()->setBlock($block->getPosition(), VanillaBlocks::NETHER_WART());
+                            } else {
+                                $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
                             }
                         }
                     }

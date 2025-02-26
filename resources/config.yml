@@ -7,6 +7,8 @@ agriculture:
   enable-potato: true
   enable-beetroot: true
   enable-wheat: true
+  enable-bamboo: true
+  enable-nether-wart: true
 range:
   x: 4
   z: 4
