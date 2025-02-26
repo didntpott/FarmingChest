@@ -15,88 +15,118 @@ class FarmingChest implements Listener
 {
     public function onUse(PlayerInteractEvent $event): void
     {
-        if ($event->getBlock()->getTypeId() === BlockTypeIds::TRAPPED_CHEST) {
-            $chest = $event->getBlock()->getPosition()->getWorld()->getTile(new Vector3($event->getBlock()->getPosition()->x, $event->getBlock()->getPosition()->y, $event->getBlock()->getPosition()->z));
-            if (!($chest instanceof Chest)) {
-                return;
-            }
-            for ($x = ($event->getBlock()->getPosition()->x - Main::getInstance()->getConfig()->getNested("range.x")); $x <= ($event->getBlock()->getPosition()->x + Main::getInstance()->getConfig()->getNested("range.x")); $x++) {
-                for ($z = ($event->getBlock()->getPosition()->z - Main::getInstance()->getConfig()->getNested("range.z")); $z <= ($event->getBlock()->getPosition()->z + Main::getInstance()->getConfig()->getNested("range.z")); $z++) {
-                    $block = $event->getBlock()->getPosition()->getWorld()->getBlockAt($x, $event->getBlock()->getPosition()->y, $z);
-                    if ($block->getTypeId() === VanillaBlocks::POTATOES()->getTypeId() && $block->getAge() == $block::MAX_AGE) {
-                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-potato", true)) {
-                            if ($chest->getInventory()->canAddItem(VanillaItems::POTATO()->setCount(4))) {
-                                $chest->getInventory()->addItem(VanillaItems::POTATO()->setCount(mt_rand(1, 4)));
-                                $block->getPosition()->getWorld()->setBlock($block->getPosition(), VanillaBlocks::POTATOES());
+        $block = $event->getBlock();
+        if ($block->getTypeId() !== BlockTypeIds::TRAPPED_CHEST) {
+            return;
+        }
+        $origin = $block->getPosition();
+        $world = $origin->getWorld();
+        $chestTile = $world->getTile($origin);
+        if (!($chestTile instanceof Chest)) {
+            return;
+        }
+
+        $config = Main::getInstance()->getConfig();
+        $rangeX = $config->getNested("range.x");
+        $rangeZ = $config->getNested("range.z");
+        $chestFullMessage = $config->get("chest-full-message");
+
+        for ($x = $origin->x - $rangeX; $x <= $origin->x + $rangeX; $x++) {
+            for ($z = $origin->z - $rangeZ; $z <= $origin->z + $rangeZ; $z++) {
+                $pos = new Vector3($x, $origin->y, $z);
+                $currentBlock = $world->getBlockAt($x, $origin->y, $z);
+
+                // POTATOES
+                if ($currentBlock->getTypeId() === VanillaBlocks::POTATOES()->getTypeId() && $currentBlock->getAge() === $currentBlock::MAX_AGE) {
+                    if ($config->getNested("agriculture.enable-potato", true)) {
+                        $item = VanillaItems::POTATO()->setCount(mt_rand(1, 4));
+                        if ($chestTile->getInventory()->canAddItem($item)) {
+                            $chestTile->getInventory()->addItem($item);
+                            $world->setBlock($pos, VanillaBlocks::POTATOES());
+                        } else {
+                            $event->getPlayer()->sendMessage($chestFullMessage);
+                        }
+                    }
+                } // CARROTS
+                elseif ($currentBlock->getTypeId() === BlockTypeIds::CARROTS && $currentBlock->getAge() === $currentBlock::MAX_AGE) {
+                    if ($config->getNested("agriculture.enable-carrot", true)) {
+                        $item = VanillaItems::CARROT()->setCount(mt_rand(1, 4));
+                        if ($chestTile->getInventory()->canAddItem($item)) {
+                            $chestTile->getInventory()->addItem($item);
+                            $world->setBlock($pos, VanillaBlocks::CARROTS());
+                        } else {
+                            $event->getPlayer()->sendMessage($chestFullMessage);
+                        }
+                    }
+                } // BEETROOTS
+                elseif ($currentBlock->getTypeId() === BlockTypeIds::BEETROOTS && $currentBlock->getAge() === $currentBlock::MAX_AGE) {
+                    if ($config->getNested("agriculture.enable-beetroot", true)) {
+                        $beetrootItem = VanillaItems::BEETROOT()->setCount(1);
+                        $seedItem = VanillaItems::BEETROOT_SEEDS()->setCount(mt_rand(1, 2));
+                        if (
+                            $chestTile->getInventory()->canAddItem($beetrootItem) &&
+                            $chestTile->getInventory()->canAddItem($seedItem)
+                        ) {
+                            $chestTile->getInventory()->addItem($beetrootItem);
+                            $chestTile->getInventory()->addItem($seedItem);
+                            $world->setBlock($pos, VanillaBlocks::BEETROOTS());
+                        } else {
+                            $event->getPlayer()->sendMessage($chestFullMessage);
+                        }
+                    }
+                } // WHEAT
+                elseif ($currentBlock->getTypeId() === BlockTypeIds::WHEAT && $currentBlock->getAge() === $currentBlock::MAX_AGE) {
+                    if ($config->getNested("agriculture.enable-wheat", true)) {
+                        $wheatItem = VanillaItems::WHEAT()->setCount(1);
+                        $seedItem = VanillaItems::WHEAT_SEEDS()->setCount(mt_rand(1, 3));
+                        if (
+                            $chestTile->getInventory()->canAddItem($wheatItem) &&
+                            $chestTile->getInventory()->canAddItem($seedItem)
+                        ) {
+                            $chestTile->getInventory()->addItem($wheatItem);
+                            $chestTile->getInventory()->addItem($seedItem);
+                            $world->setBlock($pos, VanillaBlocks::WHEAT());
+                        } else {
+                            $event->getPlayer()->sendMessage($chestFullMessage);
+                        }
+                    }
+                } // BAMBOO
+                elseif ($currentBlock->getTypeId() === BlockTypeIds::BAMBOO) {
+                    if ($config->getNested("agriculture.enable-bamboo", true)) {
+                        $bambooHeight = 0;
+                        $maxHeight = 256;
+                        $currentY = $origin->y + 1;
+                        while ($currentY < $maxHeight) {
+                            $blockAbove = $world->getBlockAt($x, $currentY, $z);
+                            if ($blockAbove->getTypeId() === BlockTypeIds::BAMBOO) {
+                                $bambooHeight++;
+                                $currentY++;
                             } else {
-                                $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
+                                break;
                             }
                         }
-                    } elseif ($block->getTypeId() === BlockTypeIds::CARROTS && $block->getAge() == $block::MAX_AGE) {
-                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-carrot", true)) {
-                            if ($chest->getInventory()->canAddItem(VanillaItems::CARROT()->setCount(4))) {
-                                $chest->getInventory()->addItem(VanillaItems::CARROT()->setCount(mt_rand(1, 4)));
-                                $block->getPosition()->getWorld()->setBlock($block->getPosition(), VanillaBlocks::CARROTS());
-                            } else {
-                                $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
-                            }
-                        }
-                    } elseif ($block->getTypeId() === BlockTypeIds::BEETROOTS && $block->getAge() == $block::MAX_AGE) {
-                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-beetroot", true)) {
-                            if ($chest->getInventory()->canAddItem(VanillaItems::BEETROOT()->setCount(1)) and $chest->getInventory()->canAddItem(VanillaItems::BEETROOT_SEEDS()->setCount(2))) {
-                                $chest->getInventory()->addItem(VanillaItems::BEETROOT()->setCount(1));
-                                $chest->getInventory()->addItem(VanillaItems::BEETROOT_SEEDS()->setCount(mt_rand(1, 2)));
-                                $block->getPosition()->getWorld()->setBlock($block->getPosition(), VanillaBlocks::BEETROOTS());
-                            } else {
-                                $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
-                            }
-                        }
-                    } elseif ($block->getTypeId() === BlockTypeIds::WHEAT && $block->getAge() == $block::MAX_AGE) {
-                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-wheat", true)) {
-                            if ($chest->getInventory()->canAddItem(VanillaItems::WHEAT()->setCount(1)) and $chest->getInventory()->canAddItem(VanillaItems::WHEAT_SEEDS()->setCount(3))) {
-                                $chest->getInventory()->addItem(VanillaItems::WHEAT()->setCount(1));
-                                $chest->getInventory()->addItem(VanillaItems::WHEAT_SEEDS()->setCount(mt_rand(1, 3)));
-                                $block->getPosition()->getWorld()->setBlock($block->getPosition(), VanillaBlocks::WHEAT());
-                            } else {
-                                $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
-                            }
-                        }
-                    } elseif ($block->getTypeId() === BlockTypeIds::BAMBOO) {
-                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-bamboo", true)) {
-                            $bambooHeight = 0;
-                            $maxHeight = 256;
-                            $currentY = $event->getBlock()->getPosition()->y + 1;
-                            while ($currentY < $maxHeight) {
-                                $blockAbove = $event->getBlock()->getPosition()->getWorld()->getBlockAt($x, $currentY, $z);
-                                if ($blockAbove->getTypeId() === BlockTypeIds::BAMBOO) {
-                                    $bambooHeight++;
-                                    $currentY++;
-                                } else {
-                                    break;
+                        if ($bambooHeight > 0) {
+                            $dropCount = min(16, mt_rand($bambooHeight, $bambooHeight * 2));
+                            $bambooItem = VanillaItems::BAMBOO()->setCount($dropCount);
+                            if ($chestTile->getInventory()->canAddItem($bambooItem)) {
+                                $chestTile->getInventory()->addItem($bambooItem);
+                                for ($y = $origin->y + 1; $y < $currentY; $y++) {
+                                    $world->setBlockAt($x, $y, $z, VanillaBlocks::AIR());
                                 }
-                            }
-                            if ($bambooHeight > 0) {
-                                $dropCount = min(16, mt_rand($bambooHeight, $bambooHeight * 2));
-                                $bambooItem = VanillaItems::BAMBOO();
-                                if ($chest->getInventory()->canAddItem($bambooItem->setCount($dropCount))) {
-                                    $chest->getInventory()->addItem($bambooItem->setCount($dropCount));
-                                    for ($y = $event->getBlock()->getPosition()->y + 1; $y < $currentY; $y++) {
-                                        $event->getBlock()->getPosition()->getWorld()->setBlockAt($x, $y, $z, VanillaBlocks::AIR());
-                                    }
-                                } else {
-                                    $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
-                                }
+                            } else {
+                                $event->getPlayer()->sendMessage($chestFullMessage);
                             }
                         }
-                    } elseif ($block->getTypeId() === BlockTypeIds::NETHER_WART && $block->getAge() == $block::MAX_AGE) {
-                        if (Main::getInstance()->getConfig()->getNested("agriculture.enable-nether-wart", true)) {
-                            $netherWartItem = VanillaBlocks::NETHER_WART()->asItem();
-                            if ($chest->getInventory()->canAddItem($netherWartItem->setCount(4))) {
-                                $chest->getInventory()->addItem($netherWartItem->setCount(mt_rand(2, 4)));
-                                $block->getPosition()->getWorld()->setBlock($block->getPosition(), VanillaBlocks::NETHER_WART());
-                            } else {
-                                $event->getPlayer()->sendMessage(Main::getInstance()->getConfig()->get("chest-full-message"));
-                            }
+                    }
+                } // NETHER WART
+                elseif ($currentBlock->getTypeId() === BlockTypeIds::NETHER_WART && $currentBlock->getAge() === $currentBlock::MAX_AGE) {
+                    if ($config->getNested("agriculture.enable-nether-wart", true)) {
+                        $netherWartItem = VanillaBlocks::NETHER_WART()->asItem()->setCount(mt_rand(2, 4));
+                        if ($chestTile->getInventory()->canAddItem($netherWartItem)) {
+                            $chestTile->getInventory()->addItem($netherWartItem);
+                            $world->setBlock($pos, VanillaBlocks::NETHER_WART());
+                        } else {
+                            $event->getPlayer()->sendMessage($chestFullMessage);
                         }
                     }
                 }
