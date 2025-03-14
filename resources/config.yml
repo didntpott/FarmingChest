@@ -9,6 +9,7 @@ agriculture:
   enable-wheat: true
   enable-bamboo: true
   enable-nether-wart: true
+  enable-sugar-cane: true
 range:
   x: 4
   z: 4

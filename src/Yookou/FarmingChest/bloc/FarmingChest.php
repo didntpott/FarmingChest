@@ -90,6 +90,34 @@ class FarmingChest implements Listener
                             $event->getPlayer()->sendMessage($chestFullMessage);
                         }
                     }
+                } // SUGAR CANE
+                elseif ($currentBlock->getTypeId() === BlockTypeIds::SUGARCANE) {
+                    if ($config->getNested("agriculture.enable-sugar-cane", true)) {
+                        $caneHeight = 0;
+                        $maxHeight = 256;
+                        $currentY = $origin->y + 1;
+                        while ($currentY < $maxHeight) {
+                            $blockAbove = $world->getBlockAt($x, $currentY, $z);
+                            if ($blockAbove->getTypeId() === BlockTypeIds::SUGARCANE) {
+                                $caneHeight++;
+                                $currentY++;
+                            } else {
+                                break;
+                            }
+                        }
+                        if ($caneHeight > 0) {
+                            $dropCount = $caneHeight;
+                            $sugarCaneItem = VanillaBlocks::SUGARCANE()->asItem()->setCount($dropCount);
+                            if ($chestTile->getInventory()->canAddItem($sugarCaneItem)) {
+                                $chestTile->getInventory()->addItem($sugarCaneItem);
+                                for ($y = $origin->y + 1; $y < $currentY; $y++) {
+                                    $world->setBlockAt($x, $y, $z, VanillaBlocks::AIR());
+                                }
+                            } else {
+                                $event->getPlayer()->sendMessage($chestFullMessage);
+                            }
+                        }
+                    }
                 } // BAMBOO
                 elseif ($currentBlock->getTypeId() === BlockTypeIds::BAMBOO) {
                     if ($config->getNested("agriculture.enable-bamboo", true)) {
@@ -102,6 +130,7 @@ class FarmingChest implements Listener
                                 $bambooHeight++;
                                 $currentY++;
                             } else {
+
                                 break;
                             }
                         }
